@@ -1,10 +1,12 @@
+
+```markdown
 # GitHub User Churn Predictor
 
 **Course:** Introduction to Data Science  
 **Professor:** Yrupe Fresco  
-**Data Source:** GitHub REST API (`api.github.com`)
-
+**Data Source:** GitHub REST API (`api.github.com`)  
 **Student:** Antonella Di Natale
+
 ---
 
 ## What this project does
@@ -27,9 +29,8 @@ Test the API:
 ```bash
 # Health check
 curl http://localhost:8000/health
+```
 
-# Predict churn
-curl -X POST http://localhost:8000/predict \
 **Case 1 — Should predict CHURNED (high risk)**
 ```json
 {
@@ -72,6 +73,7 @@ curl -X POST http://localhost:8000/predict \
 }
 ```
 
+Interactive docs available at: `http://localhost:8000/docs`
 
 ---
 
@@ -80,13 +82,13 @@ curl -X POST http://localhost:8000/predict \
 ```
 churn-predictor/
 ├── app/
-│   ├── main.py           # FastAPI app — /predict, /health, /features
+│   ├── main.py           # FastAPI app — /predict, /health, /features, /recommend
 │   ├── model.py          # Training, evaluation, model persistence
 │   ├── features.py       # Feature engineering (8 features)
 │   ├── scraper.py        # GitHub Search API + profile fetcher
 │   └── model.pkl         # Trained model (committed, ready for Docker)
 ├── notebooks/
-│   └── eda_and_selection.ipynb  # EDA + all 4 feature selection methods
+│   └── eda_and_selection.ipynb  # EDA + all 4 feature selection methods + PCA + network analysis
 ├── data/
 │   └── raw/
 │       └── github_users.csv     # Fetched GitHub profiles (committed)
@@ -145,7 +147,16 @@ Four methods were applied and compared in the notebook:
 | `/health` | GET | Service health check |
 | `/features` | GET | List of expected input fields |
 | `/predict` | POST | Returns churn prediction + probability + risk level |
+| `/recommend` | POST | Returns top-N personalized recommendations for high-risk users |
 | `/docs` | GET | Interactive Swagger UI |
+
+---
+
+## Extension: Recommendation Engine, PCA & Network Analysis
+
+- **PCA** — dimensionality reduction applied to the feature matrix with elbow plot and 2D scatter visualization colored by churn label
+- **SVD `/recommend` endpoint** — returns personalized repository suggestions for users with churn probability ≥ 0.5
+- **Network Analysis** — degree centrality and PageRank computed per user using networkx and added as new features
 
 ---
 
@@ -157,4 +168,5 @@ If you want to retrain from scratch:
 pip install -r requirements.txt
 # Open notebooks/eda_and_selection.ipynb and run all cells
 # This will re-fetch GitHub data and save a new model.pkl
+```
 ```
