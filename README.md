@@ -30,8 +30,8 @@ curl http://localhost:8000/health
 
 # Predict churn
 curl -X POST http://localhost:8000/predict \
-*Case 1 — Should predict CHURNED (high risk)*
-json
+**Case 1 — Should predict CHURNED (high risk)**
+```json
 {
   "days_inactive": 250,
   "follower_ratio": 0.1,
@@ -42,10 +42,10 @@ json
   "has_no_followers": 0,
   "profile_completeness": 1
 }
+```
 
-
-*Case 2 — Should predict NOT CHURNED (low risk)*
-json
+**Case 2 — Should predict NOT CHURNED (low risk)**
+```json
 {
   "days_inactive": 5,
   "follower_ratio": 3.5,
@@ -56,10 +56,10 @@ json
   "has_no_followers": 0,
   "profile_completeness": 3
 }
+```
 
-
-*Case 3 — Never engaged (should predict CHURNED)*
-json
+**Case 3 — Never engaged (should predict CHURNED)**
+```json
 {
   "days_inactive": 400,
   "follower_ratio": 0.0,
@@ -70,7 +70,8 @@ json
   "has_no_followers": 1,
   "profile_completeness": 0
 }
-Interactive docs available at: `http://localhost:8000/docs`
+```
+
 
 ---
 
