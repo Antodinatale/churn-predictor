@@ -30,28 +30,46 @@ curl http://localhost:8000/health
 
 # Predict churn
 curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{
-    "days_inactive": 250,
-    "follower_ratio": 0.1,
-    "repos_per_year": 0.5,
-    "gists_per_year": 0.0,
-    "account_age_days": 1800,
-    "has_no_repos": 0,
-    "has_no_followers": 0,
-    "profile_completeness": 1
-  }'
-```
-
-Expected response:
-```json
+*Case 1 — Should predict CHURNED (high risk)*
+json
 {
-  "churned": true,
-  "churn_probability": 0.874,
-  "risk_level": "High"
+  "days_inactive": 250,
+  "follower_ratio": 0.1,
+  "repos_per_year": 0.5,
+  "gists_per_year": 0.0,
+  "account_age_days": 1800,
+  "has_no_repos": 0,
+  "has_no_followers": 0,
+  "profile_completeness": 1
 }
-```
 
+
+*Case 2 — Should predict NOT CHURNED (low risk)*
+json
+{
+  "days_inactive": 5,
+  "follower_ratio": 3.5,
+  "repos_per_year": 12.0,
+  "gists_per_year": 2.0,
+  "account_age_days": 1200,
+  "has_no_repos": 0,
+  "has_no_followers": 0,
+  "profile_completeness": 3
+}
+
+
+*Case 3 — Never engaged (should predict CHURNED)*
+json
+{
+  "days_inactive": 400,
+  "follower_ratio": 0.0,
+  "repos_per_year": 0.0,
+  "gists_per_year": 0.0,
+  "account_age_days": 500,
+  "has_no_repos": 1,
+  "has_no_followers": 1,
+  "profile_completeness": 0
+}
 Interactive docs available at: `http://localhost:8000/docs`
 
 ---
