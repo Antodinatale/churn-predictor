@@ -131,3 +131,61 @@ def predict_churn(user: UserFeatures):
         churn_probability=round(float(prob), 3),
         risk_level=risk,
     )
+
+# ── SVD setup at startup ───────────────────────────────────────────────────
+try:
+    from scipy.sparse.linalg import svds
+    _raw_df = pd.read_csv("/data/raw/github_users.csv")
+    from features import compute_features
+    _X_items = compute_features(_raw_df).values.astype(float)
+    _k = min(5, min(_X_items.shape) - 1)
+    _U, _sigma, _Vt = svds(_X_items, k=_k)
+    _predicted_scores = np.dot(np.dot(_U, np.diag(_sigma)), _Vt)
+    _svd_ready = True
+except Exception as e:
+    _svd_ready = False
+    _svd_error = str(e)
+
+
+class RecommendRequest(BaseModel):
+    user_idx: int = Field(..., ge=0, description="User index in the dataset")
+    top_n: int = Field(5, ge=1, le=10)
+
+
+@app.post("/recommend")
+def recommend(request: RecommendRequest):
+    if not _svd_ready:
+        raise HTTPException(status_code=503, detail=f"SVD not ready: {_svd_error}")
+    if request.user_idx >= len(_predicted_scores):
+        raise HTTPException(status_code=404, detail="User index out of range")
+
+    user_features = _X_items[request.user_idx].reshape(1, -1)
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
+    churn_prob = model.predict_proba(user_features)[0][1]
+
+    if churn_prob < 0.5:
+        return {
+            "user_idx": request.user_idx,
+            "churn_probability": round(float(churn_prob), 3),
+            "message": "User not at high risk — no intervention needed",
+            "recommendations": []
+        }
+
+    user_scores = _predicted_scores[request.user_idx].copy()
+    top_items = np.argsort(user_scores)[::-1][:request.top_n]
+
+    return {
+        "user_idx": request.user_idx,
+        "churn_probability": round(float(churn_prob), 3),
+        "risk_level": "High" if churn_prob >= 0.7 else "Medium",
+        "recommendations": [
+            {
+                "similar_user_idx": int(idx),
+                "score": round(float(user_scores[idx]), 3),
+                "action": f"Engage with repositories from user #{idx}"
+            }
+            for idx in top_items
+        ]
+    }
